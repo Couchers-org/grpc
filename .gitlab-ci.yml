@@ -16,4 +16,4 @@ build:
     - docker build -t $GRPC_TAG .
     - docker push $GRPC_TAG
   only:
-    - dev
+    - master
