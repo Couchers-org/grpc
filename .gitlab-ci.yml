@@ -1,13 +1,30 @@
-build:
+variables:
+  RELEASE_BRANCH: master
+  GRPC_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  GRPC_RELEASE_TAG: $CI_REGISTRY_IMAGE:latest
+
+stages:
+  - build
+  - release
+
+default:
   image: docker
-  stage: build
   services:
     - docker:19.03.12-dind
-  variables:
-    GRPC_TAG: $CI_REGISTRY_IMAGE:latest
-  script:
+  before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build:
+  stage: build
+  script:
     - docker build -t $GRPC_TAG .
     - docker push $GRPC_TAG
-  only:
-    - master
+
+release:
+  stage: release
+  script:
+    - docker pull $GRPC_TAG
+    - docker tag $GRPC_TAG $GRPC_RELEASE_TAG
+    - docker push $GRPC_RELEASE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == $RELEASE_BRANCH
