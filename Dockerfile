@@ -7,7 +7,7 @@ RUN apk add --no-cache cmake git build-base linux-headers
 
 # grpc
 WORKDIR /deps
-RUN git clone -b v1.31.0 https://github.com/grpc/grpc
+RUN git clone -b v1.33.2 https://github.com/grpc/grpc
 WORKDIR /deps/grpc
 RUN git submodule update -j 16 --init
 WORKDIR /deps/grpc/build
@@ -17,7 +17,7 @@ RUN make install
 
 # grpc-web plugin
 WORKDIR /deps
-RUN git clone -b 1.2.0 https://github.com/grpc/grpc-web
+RUN git clone -b 1.2.1 https://github.com/grpc/grpc-web
 WORKDIR /deps/grpc-web/javascript/net/grpc/web/
 RUN make -j 16
 RUN make install
