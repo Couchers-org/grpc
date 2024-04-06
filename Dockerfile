@@ -4,7 +4,7 @@ FROM base as build
 
 # protoc
 WORKDIR /deps
-RUN git clone -b v3.19.3 https://github.com/protocolbuffers/protobuf
+RUN git clone -b v26.1 https://github.com/protocolbuffers/protobuf
 WORKDIR /deps/protobuf
 RUN git submodule update -j 16 --init
 RUN bazel build //:protoc
@@ -13,14 +13,14 @@ RUN cp src/google/protobuf/any.proto src/google/protobuf/api.proto src/google/pr
 
 # grpc
 WORKDIR /deps
-RUN git clone -b v1.43.0 https://github.com/grpc/grpc
+RUN git clone -b v1.62.1 https://github.com/grpc/grpc
 WORKDIR /deps/grpc
 RUN git submodule update -j 16 --init
 RUN bazel build //src/compiler:grpc_python_plugin
 
 # grpc-web plugin
 WORKDIR /deps
-RUN git clone -b 1.3.0 https://github.com/grpc/grpc-web
+RUN git clone -b 1.5.0 https://github.com/grpc/grpc-web
 WORKDIR /deps/grpc-web
 RUN bazel build //...
 
@@ -32,3 +32,5 @@ COPY --from=build /deps/grpc/bazel-bin/src/compiler/grpc_python_plugin /usr/loca
 COPY --from=build /deps/grpc-web/bazel-bin/javascript/net/grpc/web/generator/protoc-gen-grpc-web /usr/local/bin/
 # copy includes, needed for protobuf imports
 COPY --from=build /deps/protobuf/wkt /usr/local/include
+
+RUN apt update && apt install -y dos2unix
