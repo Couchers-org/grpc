@@ -1,6 +1,26 @@
-FROM aapeliv/bazel:latest as base
+FROM ubuntu:22.04 as bazel
 
-FROM base as build
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update
+
+RUN apt-get install -y locales && locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
+
+# install clang and other deps
+RUN apt-get install -y curl gnupg python3 git clang-15 build-essential cmake libstdc++-10-dev
+
+# install bazel
+RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > /etc/apt/trusted.gpg.d/bazel.gpg
+RUN echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/bazel.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
+RUN apt-get update && apt-get install -y bazel
+
+ENV CC=clang-15
+
+ENTRYPOINT ["bazel"]
+
+
+FROM bazel as build
 
 # protoc
 WORKDIR /deps
@@ -18,18 +38,14 @@ WORKDIR /deps/grpc
 RUN git submodule update -j 16 --init
 RUN bazel build //src/compiler:grpc_python_plugin
 
-# grpc-web plugin
-WORKDIR /deps
-RUN git clone -b 1.5.0 https://github.com/grpc/grpc-web
-WORKDIR /deps/grpc-web
-RUN bazel build //...
+RUN curl "https://github.com/grpc/grpc-web/releases/download/1.5.0/protoc-gen-grpc-web-1.5.0-linux-x86_64" --output /usr/local/bin/protoc-gen-grpc-web
 
-FROM ubuntu:20.04 as clean
+FROM ubuntu:22.04 as clean
 
 # copy binaries
 COPY --from=build /deps/protobuf/bazel-bin/protoc /usr/local/bin/
 COPY --from=build /deps/grpc/bazel-bin/src/compiler/grpc_python_plugin /usr/local/bin/
-COPY --from=build /deps/grpc-web/bazel-bin/javascript/net/grpc/web/generator/protoc-gen-grpc-web /usr/local/bin/
+COPY --from=build /usr/local/bin/protoc-gen-grpc-web /usr/local/bin/
 # copy includes, needed for protobuf imports
 COPY --from=build /deps/protobuf/wkt /usr/local/include
 
