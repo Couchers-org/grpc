@@ -38,14 +38,20 @@ WORKDIR /deps/grpc
 RUN git submodule update -j 16 --init
 RUN bazel build //src/compiler:grpc_python_plugin
 
-RUN curl "https://github.com/grpc/grpc-web/releases/download/1.5.0/protoc-gen-grpc-web-1.5.0-linux-x86_64" --output /usr/local/bin/protoc-gen-grpc-web
+WORKDIR /deps/protoc-gen-grpc-web
+RUN curl -Lo protoc-gen-grpc-web "https://github.com/grpc/grpc-web/releases/download/1.5.0/protoc-gen-grpc-web-1.5.0-linux-x86_64"
+
+WORKDIR /deps/protoc-gen-js
+RUN curl -Lo protobuf-javascript.tar.gz "https://github.com/protocolbuffers/protobuf-javascript/releases/download/v3.21.2/protobuf-javascript-3.21.2-linux-x86_64.tar.gz"
+RUN tar xf protobuf-javascript.tar.gz
 
 FROM ubuntu:22.04 as clean
 
 # copy binaries
 COPY --from=build /deps/protobuf/bazel-bin/protoc /usr/local/bin/
 COPY --from=build /deps/grpc/bazel-bin/src/compiler/grpc_python_plugin /usr/local/bin/
-COPY --from=build /usr/local/bin/protoc-gen-grpc-web /usr/local/bin/
+COPY --from=build /deps/protoc-gen-grpc-web/protoc-gen-grpc-web /usr/local/bin/
+COPY --from=build /deps/protoc-gen-js/bin/protoc-gen-js /usr/local/bin/protoc-gen-js
 # copy includes, needed for protobuf imports
 COPY --from=build /deps/protobuf/wkt /usr/local/include
 
