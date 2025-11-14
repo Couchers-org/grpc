@@ -10,15 +10,15 @@ stages:
 default:
   image: docker
   services:
-    - docker:24.0.5-dind
+    - docker:dind
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker buildx create --use --platform linux/amd64,linux/arm64
 
 build:
   stage: build
   script:
-    - docker build -t $GRPC_TAG .
-    - docker push $GRPC_TAG
+    - docker buildx build --platform linux/amd64,linux/arm64 -t $GRPC_TAG --push .
 
 release:
   stage: release
