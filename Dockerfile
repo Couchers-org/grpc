@@ -7,7 +7,15 @@ RUN apt-get update -qy && apt-get install -qyy locales && locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
 # install clang and other deps
-RUN apt-get install -y curl gnupg python3 git clang-15 build-essential cmake libstdc++-10-dev nodejs npm
+RUN apt-get  \
+    -o APT::Install-Recommends=false \
+    -o APT::Install-Suggests=false \
+    install -qyy  \
+      ca-certificates \
+      curl  \
+      git  \
+      clang-15  \
+      build-essential
 
 # Install Bazelisk (wrapper that downloads the right Bazel version)
 RUN curl -fsSL "https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-${TARGETARCH}" \
@@ -23,16 +31,27 @@ FROM bazel AS build
 
 # protoc
 WORKDIR /deps
-RUN git clone -b v26.1 https://github.com/protocolbuffers/protobuf
+RUN git clone --depth=1 --shallow-submodules -b v26.1 https://github.com/protocolbuffers/protobuf
 WORKDIR /deps/protobuf
 RUN git submodule update -j 16 --init
 RUN bazel build //:protoc
 RUN mkdir -p wkt/google/protobuf
-RUN cp src/google/protobuf/any.proto src/google/protobuf/api.proto src/google/protobuf/descriptor.proto src/google/protobuf/duration.proto src/google/protobuf/empty.proto src/google/protobuf/field_mask.proto src/google/protobuf/source_context.proto src/google/protobuf/struct.proto src/google/protobuf/timestamp.proto src/google/protobuf/type.proto src/google/protobuf/wrappers.proto wkt/google/protobuf/
+RUN cp src/google/protobuf/any.proto \
+       src/google/protobuf/api.proto  \
+       src/google/protobuf/descriptor.proto  \
+       src/google/protobuf/duration.proto  \
+       src/google/protobuf/empty.proto  \
+       src/google/protobuf/field_mask.proto  \
+       src/google/protobuf/source_context.proto  \
+       src/google/protobuf/struct.proto  \
+       src/google/protobuf/timestamp.proto  \
+       src/google/protobuf/type.proto  \
+       src/google/protobuf/wrappers.proto  \
+       wkt/google/protobuf/
 
 # grpc
 WORKDIR /deps
-RUN git clone -b v1.62.1 https://github.com/grpc/grpc
+RUN git clone --depth=1 --shallow-submodules -b v1.62.1 https://github.com/grpc/grpc
 WORKDIR /deps/grpc
 RUN git submodule update -j 16 --init
 RUN bazel build //src/compiler:grpc_python_plugin
