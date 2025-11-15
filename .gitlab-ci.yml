@@ -10,7 +10,9 @@ stages:
 default:
   image: docker
   services:
-    - docker:dind
+    - name: docker:dind
+      # See the comment in https://docs.gitlab.com/ci/runners/hosted_runners/linux/#machine-types-available-for-linux---arm64
+      command: ["--mtu=1400"]
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
