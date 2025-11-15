@@ -13,21 +13,28 @@ default:
     - docker:dind
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker buildx create --use --platform linux/amd64,linux/arm64
 
-build:
+build-amd64:
   stage: build
   script:
-    - docker buildx build --platform linux/amd64,linux/arm64 -t $GRPC_TAG --push .
-  timeout: 4 hours
+    - docker buildx create --use --platform linux/amd64
+    - docker buildx build --platform linux/amd64 -t $GRPC_TAG-amd64 --push .
+  timeout: 3 hours
   tags:
     - saas-linux-large-amd64
+
+build-arm64:
+  stage: build
+  script:
+    - docker buildx create --use --platform linux/arm64
+    - docker buildx build --platform linux/arm64 -t $GRPC_TAG-arm64 --push .
+  timeout: 3 hours
+  tags:
+    - saas-linux-large-arm64
 
 release:
   stage: release
   script:
-    - docker pull $GRPC_TAG
-    - docker tag $GRPC_TAG $GRPC_RELEASE_TAG
-    - docker push $GRPC_RELEASE_TAG
+    - docker buildx imagetools create -t $GRPC_RELEASE_TAG $GRPC_TAG-amd64 $GRPC_TAG-arm64
   rules:
     - if: $CI_COMMIT_BRANCH == $RELEASE_BRANCH
