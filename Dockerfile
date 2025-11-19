@@ -82,11 +82,13 @@ FROM ubuntu:24.04 AS clean
 
 RUN <<EOT
 apt-get update -qy
+# python is needed in the final image for the mypy-protobuf plugin
 apt-get install -qyy \
     -o APT::Install-Recommends=false \
     -o APT::Install-Suggests=false \
-    dos2unix
+    dos2unix python3-dev python3-pip
 
+pip3 install --break-system-package mypy-protobuf
 apt-get clean
 rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOT
