@@ -88,7 +88,7 @@ apt-get install -qyy \
     -o APT::Install-Suggests=false \
     dos2unix python3-dev python3-pip
 
-pip3 install --break-system-package mypy-protobuf
+pip3 install --break-system-package --no-cache-dir --compile mypy-protobuf==4.0.0
 apt-get clean
 rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOT
