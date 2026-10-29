@@ -71,12 +71,13 @@ RUN chmod +x protoc-gen-grpc-web
 
 # protoc-gen-js
 WORKDIR /deps/protoc-gen-js
-RUN curl -fsSL -o protobuf-javascript.tar.gz "https://github.com/protocolbuffers/protobuf-javascript/archive/refs/tags/v3.21.2.tar.gz" && \
-    tar xf protobuf-javascript.tar.gz && \
-    cd protobuf-javascript-3.21.2 && \
-    bazel build //generator:protoc-gen-js && \
-    mkdir -p ../bin && \
-    cp bazel-bin/generator/protoc-gen-js ../bin/
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+        ARCH_SUFFIX="x86_64"; \
+    else \
+        ARCH_SUFFIX="aarch_64"; \
+    fi && \
+    curl -fsSL -o protobuf-javascript.tar.gz "https://github.com/protocolbuffers/protobuf-javascript/releases/download/v4.0.3/protobuf-javascript-4.0.3-linux-${ARCH_SUFFIX}.tar.gz" && \
+    tar xzf protobuf-javascript.tar.gz bin/protoc-gen-js
 
 FROM ubuntu:24.04 AS clean
 
