@@ -19,7 +19,7 @@ RUN apt-get  \
       build-essential
 
 # Install Bazelisk (wrapper that downloads the right Bazel version)
-RUN curl -fsSL "https://github.com/bazelbuild/bazelisk/releases/download/v1.30.0/bazelisk-linux-${TARGETARCH}" \
+RUN curl -fsSL --retry 5 --connect-timeout 30 "https://github.com/bazelbuild/bazelisk/releases/download/v1.30.0/bazelisk-linux-${TARGETARCH}" \
     -o /usr/local/bin/bazel && \
     chmod +x /usr/local/bin/bazel
 ENV CC=clang-18
@@ -39,7 +39,7 @@ RUN case "$TARGETARCH" in \
       arm64) ARCH=aarch_64; SHA256=8b8f18bd2b30346efbc698dd5a73dd7c805f3ef8380f6dfc95c768f3f1852f6a ;; \
       *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
     esac && \
-    curl -fsSL -o protoc.zip \
+    curl -fsSL --retry 5 --connect-timeout 30 -o protoc.zip \
       "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" && \
     echo "${SHA256}  protoc.zip" | sha256sum -c - && \
     unzip -q protoc.zip bin/protoc 'include/*'
@@ -60,7 +60,7 @@ RUN case "$TARGETARCH" in \
       arm64) ARCH=aarch64; SHA256=e95f306f16c17cac80280e0964c0095073433232f94b025fe41652a0eeacbaea ;; \
       *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
     esac && \
-    curl -fsSL -o protoc-gen-grpc-web \
+    curl -fsSL --retry 5 --connect-timeout 30 -o protoc-gen-grpc-web \
       "https://github.com/grpc/grpc-web/releases/download/${PROTOC_GEN_GRPC_WEB_VERSION}/protoc-gen-grpc-web-${PROTOC_GEN_GRPC_WEB_VERSION}-linux-${ARCH}" && \
     echo "${SHA256}  protoc-gen-grpc-web" | sha256sum -c - && \
     chmod +x protoc-gen-grpc-web
@@ -76,7 +76,7 @@ RUN case "$TARGETARCH" in \
       arm64) ARCH=aarch_64; SHA256=856585ad455e1f1ce82eebb95ca70415d3d8c017559e35b585d7907239bafa04 ;; \
       *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
     esac && \
-    curl -fsSL -o protobuf-javascript.tar.gz \
+    curl -fsSL --retry 5 --connect-timeout 30 -o protobuf-javascript.tar.gz \
       "https://github.com/protocolbuffers/protobuf-javascript/releases/download/v${PROTOC_GEN_JS_VERSION}/protobuf-javascript-${PROTOC_GEN_JS_VERSION}-linux-${ARCH}.tar.gz" && \
     echo "${SHA256}  protobuf-javascript.tar.gz" | sha256sum -c - && \
     tar xzf protobuf-javascript.tar.gz bin/protoc-gen-js
