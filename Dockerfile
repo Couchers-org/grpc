@@ -98,7 +98,7 @@ EOT
 
 # copy binaries
 COPY --from=build /deps/protoc/bin/protoc /usr/local/bin/
-COPY --from=build /deps/grpc/bazel-bin/src/compiler/grpc_python_plugin /usr/local/bin/
+COPY --from=build /deps/grpc/bazel-bin/src/compiler/grpc_python_plugin_binary /usr/local/bin/grpc_python_plugin
 COPY --from=build /deps/protoc-gen-grpc-web/protoc-gen-grpc-web /usr/local/bin/
 COPY --from=build /deps/protoc-gen-js/bin/protoc-gen-js /usr/local/bin/protoc-gen-js
 # copy includes, needed for protobuf imports
