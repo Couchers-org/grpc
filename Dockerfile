@@ -71,12 +71,19 @@ RUN chmod +x protoc-gen-grpc-web
 
 # protoc-gen-js
 WORKDIR /deps/protoc-gen-js
-RUN curl -fsSL -o protobuf-javascript.tar.gz "https://github.com/protocolbuffers/protobuf-javascript/archive/refs/tags/v3.21.2.tar.gz" && \
-    tar xf protobuf-javascript.tar.gz && \
-    cd protobuf-javascript-3.21.2 && \
-    bazel build //generator:protoc-gen-js && \
-    mkdir -p ../bin && \
-    cp bazel-bin/generator/protoc-gen-js ../bin/
+# Use the prebuilt release binary (published since v4) instead of building with Bazel.
+# The project publishes no checksums, so these are pinned from the release; update them when bumping the version.
+ARG PROTOC_GEN_JS_VERSION=4.0.3
+RUN case "$TARGETARCH" in \
+      amd64) ARCH=x86_64;   SHA256=30abc1d57c3cc7105950e56e1b37b41033f6ed989b79efc59b90186c0a835c30 ;; \
+      # note: aarch_64 with an underscore, unlike grpc-web's aarch64
+      arm64) ARCH=aarch_64; SHA256=856585ad455e1f1ce82eebb95ca70415d3d8c017559e35b585d7907239bafa04 ;; \
+      *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac && \
+    curl -fsSL -o protobuf-javascript.tar.gz \
+      "https://github.com/protocolbuffers/protobuf-javascript/releases/download/v${PROTOC_GEN_JS_VERSION}/protobuf-javascript-${PROTOC_GEN_JS_VERSION}-linux-${ARCH}.tar.gz" && \
+    echo "${SHA256}  protobuf-javascript.tar.gz" | sha256sum -c - && \
+    tar xzf protobuf-javascript.tar.gz bin/protoc-gen-js
 
 FROM ubuntu:24.04 AS clean
 
